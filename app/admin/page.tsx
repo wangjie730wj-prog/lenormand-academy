@@ -39,7 +39,7 @@ type Submission = {
   };
 };
 
-function fmt(dt?: string | null) {
+function fmt(dt?: string | Date | null) {
   return dt ? new Date(dt).toLocaleString("zh-CN") : "—";
 }
 function toDateInput(dt?: string | null) {
