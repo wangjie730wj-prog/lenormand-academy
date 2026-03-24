@@ -35,9 +35,7 @@ function normalize(body: any, existing: any) {
   const readingMethod = rawReadingMethod === "其他自定义方法" ? readingMethodCustom || "其他自定义方法" : rawReadingMethod;
   const tags = [caseType, spreadType, readingMethod].filter(Boolean);
   const title = String(question).slice(0, 80);
-  const summary = [background, feedback].filter(Boolean).join("
-
-").slice(0, 240) || cardsAndClarifiers || question;
+  const summary = [background, feedback].filter(Boolean).join("\n\n").slice(0, 240) || cardsAndClarifiers || question;
   const content = [
     `【案例问题】${question}`,
     `【案例类型】${caseType}`,
@@ -47,9 +45,7 @@ function normalize(body: any, existing: any) {
     `【解读方法】${readingMethod}`,
     feedback ? `【答案反馈】${feedback}` : "",
     detailedAnalysis ? `【案例详解】${detailedAnalysis}` : "",
-  ].filter(Boolean).join("
-
-");
+  ].filter(Boolean).join("\n\n");
 
   return {
     title, category: caseType, tags, summary, content, question, caseType, caseTypeCustom, background, cardsAndClarifiers, spreadType, spreadTypeCustom, readingMethod, readingMethodCustom, feedback, detailedAnalysis,
