@@ -23,7 +23,9 @@ function normalize(body: z.infer<typeof createSchema>) {
   const readingMethod = body.readingMethod === "其他自定义方法" ? body.readingMethodCustom || "其他自定义方法" : body.readingMethod;
   const tags = [caseType, spreadType, readingMethod].filter(Boolean) as string[];
   const title = body.question.slice(0, 80);
-  const summary = [body.background, body.feedback].filter(Boolean).join("\n\n").slice(0, 240) || body.cardsAndClarifiers || body.question;
+  const summary = [body.background, body.feedback].filter(Boolean).join("
+
+").slice(0, 240) || body.cardsAndClarifiers || body.question;
   const content = [
     `【案例问题】${body.question}`,
     `【案例类型】${caseType}`,
@@ -33,7 +35,9 @@ function normalize(body: z.infer<typeof createSchema>) {
     `【解读方法】${readingMethod}`,
     body.feedback ? `【答案反馈】${body.feedback}` : "",
     body.detailedAnalysis ? `【案例详解】${body.detailedAnalysis}` : "",
-  ].filter(Boolean).join("\n\n");
+  ].filter(Boolean).join("
+
+");
   return { title, category: caseType, tags, summary, content, caseType, spreadType, readingMethod };
 }
 

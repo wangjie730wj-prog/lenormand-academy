@@ -4,7 +4,7 @@ export type MeResponse = {
     username: string;
     role: "ADMIN" | "STUDENT" | "PAID_STUDENT";
     status: "ACTIVE" | "DISABLED";
-    sharedAccessUntil: string | null;
+    sharedAccessUntil: string | Date | null;
     sharedAccessPermanent?: boolean;
     canReadSharedCase: boolean;
   } | null;

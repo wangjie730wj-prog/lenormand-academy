@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 type User = {
   username: string;
   role: "ADMIN" | "STUDENT" | "PAID_STUDENT";
-  sharedAccessUntil: string | null;
+  sharedAccessUntil: string | Date | null;
   sharedAccessPermanent?: boolean;
   canReadSharedCase?: boolean;
 };
