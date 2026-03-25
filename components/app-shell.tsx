@@ -17,6 +17,7 @@ export function AppShell({ user, children }: { user: User; children: React.React
   const links = [
     { href: "/dashboard", label: "总览" },
     { href: "/library", label: "牌义库" },
+    { href: "/practice", label: "练习" },
     { href: "/personal-cases", label: "个人案例库" },
     { href: "/shared-cases", label: "共享案例库" },
     { href: "/quiz", label: "测试" },

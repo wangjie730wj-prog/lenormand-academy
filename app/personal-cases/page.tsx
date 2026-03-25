@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { MeResponse } from "@/types";
 import { AppShell } from "@/components/app-shell";
 
 const CASE_TYPES = ["爱情", "桃花", "财富", "事业", "健康", "选择", "对比", "运势", "其他自定义"];
 const SPREAD_TYPES = ["线性牌阵", "十字牌阵", "九宫格牌阵", "对比牌阵", "H牌阵", "金字塔牌阵", "大桌牌阵", "其他自定义牌阵"];
 const READING_METHODS = ["组合法", "顺序法", "主题牌法", "时间法", "其他自定义方法"];
+const FILTERS = ["all", "draft", "submittable", "submitted"] as const;
+type FilterMode = (typeof FILTERS)[number];
 
 type PersonalCase = {
   id: string;
@@ -79,8 +81,24 @@ function resolveOption(value: string | null | undefined, list: string[], fallbac
   return list.includes(value) ? value : fallback;
 }
 
+function isDraftCase(item: PersonalCase) {
+  return !item.background?.trim() || !item.cardsAndClarifiers?.trim() || !item.detailedAnalysis?.trim();
+}
+
+function isSubmittableCase(item: PersonalCase) {
+  return Boolean(
+    item.title?.trim() &&
+      item.question?.trim() &&
+      item.background?.trim() &&
+      item.cardsAndClarifiers?.trim() &&
+      item.detailedAnalysis?.trim() &&
+      !item.isSubmitted
+  );
+}
+
 export default function PersonalCasesPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [me, setMe] = useState<MeResponse["user"]>(null);
   const [items, setItems] = useState<PersonalCase[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -91,6 +109,12 @@ export default function PersonalCasesPage() {
   const [active, setActive] = useState<PersonalCase | null>(null);
   const [showEditor, setShowEditor] = useState(true);
   const [showList, setShowList] = useState(true);
+
+  const filter = (searchParams.get("filter") as FilterMode) && FILTERS.includes(searchParams.get("filter") as FilterMode)
+    ? (searchParams.get("filter") as FilterMode)
+    : "all";
+  const mode = searchParams.get("mode");
+  const highlightId = searchParams.get("highlight");
 
   async function loadAll() {
     const [meRes, itemsRes, submissionsRes] = await Promise.all([
@@ -117,6 +141,15 @@ export default function PersonalCasesPage() {
     void loadAll();
   }, []);
 
+  useEffect(() => {
+    if (mode === "new") {
+      setShowEditor(true);
+      setShowList(false);
+      setMessage("已为你打开新建练习表单，可直接开始记录。");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [mode]);
+
   const submissionMap = useMemo(() => {
     const map = new Map<string, Submission>();
     submissions.forEach((s) => map.set(s.personalCase.id, s));
@@ -127,8 +160,33 @@ export default function PersonalCasesPage() {
     const pending = submissions.filter((s) => s.status === "PENDING").length;
     const approved = submissions.filter((s) => s.status === "APPROVED").length;
     const rejected = submissions.filter((s) => s.status === "REJECTED").length;
-    return { total: items.length, pending, approved, rejected };
+    const drafts = items.filter(isDraftCase).length;
+    const submittable = items.filter(isSubmittableCase).length;
+    const submitted = items.filter((item) => item.isSubmitted).length;
+    return { total: items.length, pending, approved, rejected, drafts, submittable, submitted };
   }, [items, submissions]);
+
+  const filteredItems = useMemo(() => {
+    switch (filter) {
+      case "draft":
+        return items.filter(isDraftCase);
+      case "submittable":
+        return items.filter(isSubmittableCase);
+      case "submitted":
+        return items.filter((item) => item.isSubmitted);
+      default:
+        return items;
+    }
+  }, [items, filter]);
+
+  useEffect(() => {
+    if (!highlightId || !items.length) return;
+    const target = items.find((item) => item.id === highlightId);
+    if (!target) return;
+    setActive(target);
+    setShowList(true);
+    setMessage(`已定位到你刚保存的案例《${target.question || target.title}》。`);
+  }, [highlightId, items]);
 
   function resetForm() {
     setForm(emptyForm);
@@ -173,6 +231,9 @@ export default function PersonalCasesPage() {
     setShowEditor(false);
     setShowList(true);
     await loadAll();
+    if (!form.id && data.item?.id) {
+      router.replace(`/personal-cases?highlight=${data.item.id}`);
+    }
   }
 
   function editCase(item: PersonalCase) {
@@ -222,6 +283,13 @@ export default function PersonalCasesPage() {
     await loadAll();
   }
 
+  function setFilterMode(next: FilterMode) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (next === "all") params.delete("filter");
+    else params.set("filter", next);
+    router.replace(`/personal-cases${params.toString() ? `?${params.toString()}` : ""}`);
+  }
+
   if (loading || !me) return <div className="container">加载中...</div>;
 
   return (
@@ -229,13 +297,18 @@ export default function PersonalCasesPage() {
       <section className="card" style={{ padding: 24, marginBottom: 18 }}>
         <div className="badge">案例库工作台</div>
         <h1 className="page-title" style={{ marginTop: 14 }}>个人案例长期沉淀 · 共享案例按规则开放</h1>
-        <p className="muted">这版不再追求完全像旧版，而是优先保证好用：个人案例按 8 个字段沉淀，新增案例和案例列表支持折叠切换；共享权限和到期日改成后台自由控制。</p>
+        <p className="muted">这版把练习、草稿整理、可投稿筛选串起来了：首页、练习页、个人案例库之间会更顺，适合长期积累自己的案例资产。</p>
         <div className="stat-grid" style={{ marginTop: 16 }}>
           <div className="stat-box"><div className="muted-sm">我的案例</div><div className="stat-value">{stats.total}</div></div>
+          <div className="stat-box"><div className="muted-sm">草稿待整理</div><div className="stat-value">{stats.drafts}</div></div>
+          <div className="stat-box"><div className="muted-sm">可投稿</div><div className="stat-value">{stats.submittable}</div></div>
           <div className="stat-box"><div className="muted-sm">审核中</div><div className="stat-value">{stats.pending}</div></div>
-          <div className="stat-box"><div className="muted-sm">已通过</div><div className="stat-value">{stats.approved}</div></div>
-          <div className="stat-box"><div className="muted-sm">已驳回</div><div className="stat-value">{stats.rejected}</div></div>
           <div className="stat-box"><div className="muted-sm">共享权限</div><div className="muted" style={{ marginTop: 8 }}>{me.sharedAccessPermanent ? "永久可读" : fmt(me.sharedAccessUntil)}</div></div>
+        </div>
+        <div className="item-actions" style={{ marginTop: 16 }}>
+          <button className="btn btn-primary" onClick={() => router.push('/practice')}>开始一次新练习</button>
+          <button className="btn btn-secondary" onClick={() => setFilterMode('draft')}>只看草稿</button>
+          <button className="btn btn-secondary" onClick={() => setFilterMode('submittable')}>只看可投稿</button>
         </div>
       </section>
 
@@ -309,37 +382,49 @@ export default function PersonalCasesPage() {
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
             <div>
               <div className="badge">我的案例列表</div>
-              <h2 className="section-title" style={{ marginTop: 14 }}>共 {items.length} 条</h2>
+              <h2 className="section-title" style={{ marginTop: 14 }}>当前显示 {filteredItems.length} 条</h2>
             </div>
             <button className="btn btn-secondary" onClick={() => setShowList((v) => !v)}>{showList ? "折叠列表" : "展开列表"}</button>
           </div>
+          <div className="filter-row" style={{ marginTop: 16 }}>
+            <button className={`filter-chip ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilterMode('all')}>全部</button>
+            <button className={`filter-chip ${filter === 'draft' ? 'active' : ''}`} onClick={() => setFilterMode('draft')}>草稿待整理</button>
+            <button className={`filter-chip ${filter === 'submittable' ? 'active' : ''}`} onClick={() => setFilterMode('submittable')}>可投稿</button>
+            <button className={`filter-chip ${filter === 'submitted' ? 'active' : ''}`} onClick={() => setFilterMode('submitted')}>已投稿</button>
+          </div>
           {showList ? (
             <div className="list" style={{ marginTop: 16 }}>
-              {items.map((item) => {
+              {filteredItems.map((item) => {
                 const submission = submissionMap.get(item.id);
-                const statusText = submission?.status === "PENDING" ? "审核中" : submission?.status === "APPROVED" ? "已通过" : submission?.status === "REJECTED" ? "已驳回" : "未投稿";
+                const statusText = submission?.status === "PENDING" ? "审核中" : submission?.status === "APPROVED" ? "已通过" : submission?.status === "REJECTED" ? "已驳回" : isDraftCase(item) ? "草稿" : "未投稿";
+                const isHighlighted = item.id === highlightId;
                 return (
-                  <article key={item.id} className="card" style={{ padding: 18, borderRadius: 20 }}>
+                  <article key={item.id} className="card" style={{ padding: 18, borderRadius: 20, border: isHighlighted ? '1px solid rgba(251,191,36,.5)' : undefined, boxShadow: isHighlighted ? '0 0 0 3px rgba(251,191,36,.12)' : undefined }}>
                     <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                       <div>
                         <div style={{ fontSize: 18, fontWeight: 700 }}>{item.question || item.title}</div>
                         <div className="muted" style={{ fontSize: 13, marginTop: 4 }}>{item.caseType || item.category || "未分类"} · {item.spreadType || "未设牌阵"} · {item.readingMethod || "未设方法"}</div>
                       </div>
-                      <div className={`mini-badge ${submission?.status?.toLowerCase() || "draft"}`}>{statusText}</div>
+                      <div className={`mini-badge ${submission?.status?.toLowerCase() || (isDraftCase(item) ? 'draft' : 'approved')}`}>{statusText}</div>
                     </div>
                     {item.background ? <p className="muted" style={{ marginTop: 10 }}>{item.background}</p> : null}
+                    <div className="tag-list" style={{ marginTop: 10 }}>
+                      {isDraftCase(item) ? <span className="tag">待整理</span> : null}
+                      {isSubmittableCase(item) ? <span className="tag">可投稿</span> : null}
+                      {item.isSubmitted ? <span className="tag">已进入审核流程</span> : null}
+                    </div>
                     <div className="muted-sm" style={{ marginTop: 8 }}>最后更新：{fmt(item.updatedAt)}</div>
                     {submission ? <div className="muted-sm" style={{ marginTop: 8 }}>投稿记录：{fmt(submission.createdAt)} · {submission.reviewNote || "暂无审核备注"}</div> : null}
                     <div className="item-actions">
                       <button className="btn btn-secondary" onClick={() => setActive(item)}>查看详情</button>
                       <button className="btn btn-secondary" onClick={() => editCase(item)} disabled={item.isSubmitted}>编辑</button>
                       <button className="btn btn-danger" onClick={() => deleteCase(item)} disabled={item.isSubmitted}>删除</button>
-                      <button className="btn btn-primary" onClick={() => submitCase(item)} disabled={item.isSubmitted || submission?.status === "APPROVED"}>投稿共享库</button>
+                      <button className="btn btn-primary" onClick={() => submitCase(item)} disabled={!isSubmittableCase(item) || submission?.status === "APPROVED"}>投稿共享库</button>
                     </div>
                   </article>
                 );
               })}
-              {!items.length ? <div className="muted">你还没有自己的案例，先在左侧创建第一条吧。</div> : null}
+              {!filteredItems.length ? <div className="muted">当前筛选下没有案例。你可以先去练习页完成一条新记录，或者切换筛选查看其它状态。</div> : null}
             </div>
           ) : null}
         </section>
