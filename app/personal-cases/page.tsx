@@ -1,5 +1,3 @@
-"use client";
-
 import { Suspense } from "react";
 import PersonalCasesClient from "./personal-cases-client";
 
