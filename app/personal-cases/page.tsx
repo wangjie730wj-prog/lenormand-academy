@@ -1,14 +1,21 @@
-import { Suspense } from "react";
 import PersonalCasesClient from "./personal-cases-client";
 
-function PersonalCasesFallback() {
-  return <div className="container">加载中...</div>;
-}
+type PersonalCasesPageProps = {
+  searchParams?: Promise<{
+    filter?: string;
+    mode?: string;
+    highlight?: string;
+  }>;
+};
 
-export default function PersonalCasesPage() {
+export default async function PersonalCasesPage({ searchParams }: PersonalCasesPageProps) {
+  const params = (await searchParams) ?? {};
+
   return (
-    <Suspense fallback={<PersonalCasesFallback />}>
-      <PersonalCasesClient />
-    </Suspense>
+    <PersonalCasesClient
+      initialFilter={params.filter}
+      initialMode={params.mode}
+      initialHighlightId={params.highlight}
+    />
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { MeResponse } from "@/types";
 import { AppShell } from "@/components/app-shell";
 
@@ -10,6 +10,12 @@ const SPREAD_TYPES = ["线性牌阵", "十字牌阵", "九宫格牌阵", "对比
 const READING_METHODS = ["组合法", "顺序法", "主题牌法", "时间法", "其他自定义方法"];
 const FILTERS = ["all", "draft", "submittable", "submitted"] as const;
 type FilterMode = (typeof FILTERS)[number];
+
+type PersonalCasesClientProps = {
+  initialFilter?: string;
+  initialMode?: string;
+  initialHighlightId?: string;
+};
 
 type PersonalCase = {
   id: string;
@@ -96,9 +102,8 @@ function isSubmittableCase(item: PersonalCase) {
   );
 }
 
-export default function PersonalCasesPage() {
+export default function PersonalCasesClient({ initialFilter, initialMode, initialHighlightId }: PersonalCasesClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [me, setMe] = useState<MeResponse["user"]>(null);
   const [items, setItems] = useState<PersonalCase[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -110,11 +115,11 @@ export default function PersonalCasesPage() {
   const [showEditor, setShowEditor] = useState(true);
   const [showList, setShowList] = useState(true);
 
-  const filter = (searchParams.get("filter") as FilterMode) && FILTERS.includes(searchParams.get("filter") as FilterMode)
-    ? (searchParams.get("filter") as FilterMode)
+  const filter = initialFilter && FILTERS.includes(initialFilter as FilterMode)
+    ? (initialFilter as FilterMode)
     : "all";
-  const mode = searchParams.get("mode");
-  const highlightId = searchParams.get("highlight");
+  const mode = initialMode;
+  const highlightId = initialHighlightId;
 
   async function loadAll() {
     const [meRes, itemsRes, submissionsRes] = await Promise.all([
@@ -284,7 +289,9 @@ export default function PersonalCasesPage() {
   }
 
   function setFilterMode(next: FilterMode) {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams();
+    if (initialMode) params.set("mode", initialMode);
+    if (initialHighlightId) params.set("highlight", initialHighlightId);
     if (next === "all") params.delete("filter");
     else params.set("filter", next);
     router.replace(`/personal-cases${params.toString() ? `?${params.toString()}` : ""}`);
