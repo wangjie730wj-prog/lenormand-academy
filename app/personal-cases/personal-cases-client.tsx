@@ -112,8 +112,7 @@ export default function PersonalCasesClient({ initialFilter, initialMode, initia
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [active, setActive] = useState<PersonalCase | null>(null);
-  const [showEditor, setShowEditor] = useState(true);
-  const [showList, setShowList] = useState(true);
+  const [activeTab, setActiveTab] = useState<"editor" | "list">("editor");
 
   const filter = initialFilter && FILTERS.includes(initialFilter as FilterMode)
     ? (initialFilter as FilterMode)
@@ -148,8 +147,7 @@ export default function PersonalCasesClient({ initialFilter, initialMode, initia
 
   useEffect(() => {
     if (mode === "new") {
-      setShowEditor(true);
-      setShowList(false);
+      setActiveTab("editor");
       setMessage("已为你打开新建练习表单，可直接开始记录。");
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -189,14 +187,14 @@ export default function PersonalCasesClient({ initialFilter, initialMode, initia
     const target = items.find((item) => item.id === highlightId);
     if (!target) return;
     setActive(target);
-    setShowList(true);
+    setActiveTab("list");
     setMessage(`已定位到你刚保存的案例《${target.question || target.title}》。`);
   }, [highlightId, items]);
 
   function resetForm() {
     setForm(emptyForm);
     setMessage("");
-    setShowEditor(true);
+    setActiveTab("editor");
   }
 
   async function saveCase(e: React.FormEvent) {
@@ -233,8 +231,7 @@ export default function PersonalCasesClient({ initialFilter, initialMode, initia
 
     setMessage(form.id ? "案例已更新" : "案例已创建");
     setForm(emptyForm);
-    setShowEditor(false);
-    setShowList(true);
+    setActiveTab("list");
     await loadAll();
     if (!form.id && data.item?.id) {
       router.replace(`/personal-cases?highlight=${data.item.id}`);
@@ -256,8 +253,7 @@ export default function PersonalCasesClient({ initialFilter, initialMode, initia
       feedback: item.feedback || "",
       detailedAnalysis: item.detailedAnalysis || "",
     });
-    setShowEditor(true);
-    setShowList(false);
+    setActiveTab("editor");
     setMessage("");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -319,123 +315,123 @@ export default function PersonalCasesClient({ initialFilter, initialMode, initia
         </div>
       </section>
 
-      <div className="case-columns">
-        <section className="card" style={{ padding: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-            <div>
-              <div className="badge">我的个人案例库</div>
-              <h2 className="section-title" style={{ marginTop: 14 }}>新增案例 / 编辑案例</h2>
-            </div>
-            <button className="btn btn-secondary" onClick={() => setShowEditor((v) => !v)}>{showEditor ? "折叠编辑区" : "展开编辑区"}</button>
+      <section className="card" style={{ padding: 24, marginBottom: 18 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <div>
+            <div className="badge">个人案例库</div>
+            <h2 className="section-title" style={{ marginTop: 14 }}>用标签切换你的记录区与案例列表</h2>
           </div>
-          {showEditor ? (
-            <>
-              <div className="info-banner" style={{ marginTop: 12 }}>
-                新增案例时按固定字段沉淀；保存后会一直存在数据库。选了“其他自定义”时，会自动展开补充输入框。
-              </div>
-              <form onSubmit={saveCase} style={{ display: "grid", gap: 14, marginTop: 18 }}>
-                <div>
-                  <label className="label">1️⃣ 案例问题</label>
-                  <textarea className="textarea" rows={3} placeholder="自由填写" value={form.question} onChange={(e) => setForm({ ...form, question: e.target.value })} />
-                </div>
-                <div>
-                  <label className="label">2️⃣ 案例类型</label>
-                  <select className="select" value={form.caseType} onChange={(e) => setForm({ ...form, caseType: e.target.value })}>
-                    {CASE_TYPES.map((option) => <option key={option} value={option}>{option}</option>)}
-                  </select>
-                  {form.caseType === "其他自定义" ? <input className="input" style={{ marginTop: 10 }} placeholder="填写自定义案例类型" value={form.caseTypeCustom} onChange={(e) => setForm({ ...form, caseTypeCustom: e.target.value })} /> : null}
-                </div>
-                <div>
-                  <label className="label">3️⃣ 案例背景</label>
-                  <textarea className="textarea" rows={4} placeholder="例如：长期断联，女方求问复合，两人分手原因为 xxx" value={form.background} onChange={(e) => setForm({ ...form, background: e.target.value })} />
-                </div>
-                <div>
-                  <label className="label">4️⃣ 牌面＋补牌</label>
-                  <textarea className="textarea" rows={4} placeholder="自由填写" value={form.cardsAndClarifiers} onChange={(e) => setForm({ ...form, cardsAndClarifiers: e.target.value })} />
-                </div>
-                <div>
-                  <label className="label">5️⃣ 牌阵</label>
-                  <select className="select" value={form.spreadType} onChange={(e) => setForm({ ...form, spreadType: e.target.value })}>
-                    {SPREAD_TYPES.map((option) => <option key={option} value={option}>{option}</option>)}
-                  </select>
-                  {form.spreadType === "其他自定义牌阵" ? <input className="input" style={{ marginTop: 10 }} placeholder="填写自定义牌阵" value={form.spreadTypeCustom} onChange={(e) => setForm({ ...form, spreadTypeCustom: e.target.value })} /> : null}
-                </div>
-                <div>
-                  <label className="label">6️⃣ 解读方法</label>
-                  <select className="select" value={form.readingMethod} onChange={(e) => setForm({ ...form, readingMethod: e.target.value })}>
-                    {READING_METHODS.map((option) => <option key={option} value={option}>{option}</option>)}
-                  </select>
-                  {form.readingMethod === "其他自定义方法" ? <input className="input" style={{ marginTop: 10 }} placeholder="填写自定义解读方法" value={form.readingMethodCustom} onChange={(e) => setForm({ ...form, readingMethodCustom: e.target.value })} /> : null}
-                </div>
-                <div>
-                  <label className="label">7️⃣ 答案反馈</label>
-                  <textarea className="textarea" rows={4} placeholder="自由填写" value={form.feedback} onChange={(e) => setForm({ ...form, feedback: e.target.value })} />
-                </div>
-                <div>
-                  <label className="label">8️⃣ 案例详解</label>
-                  <textarea className="textarea" rows={10} placeholder="比如：自我详细解读、解读拆分路径、思路复盘、避雷事项、常用牌与牌组合等" value={form.detailedAnalysis} onChange={(e) => setForm({ ...form, detailedAnalysis: e.target.value })} />
-                </div>
-                {message ? <div className="info-banner">{message}</div> : null}
-                <div className="item-actions">
-                  <button className="btn btn-primary" disabled={saving}>{saving ? "保存中..." : form.id ? "保存修改" : "保存到我的案例库"}</button>
-                  <button type="button" className="btn btn-secondary" onClick={resetForm}>清空表单</button>
-                </div>
-              </form>
-            </>
-          ) : null}
-        </section>
+          <div className="tab-switcher" role="tablist" aria-label="个人案例库视图切换">
+            <button className={`tab-chip ${activeTab === "editor" ? "active" : ""}`} onClick={() => setActiveTab("editor")} role="tab" aria-selected={activeTab === "editor"}>我的个人案例库</button>
+            <button className={`tab-chip ${activeTab === "list" ? "active" : ""}`} onClick={() => setActiveTab("list")} role="tab" aria-selected={activeTab === "list"}>我的案例列表</button>
+          </div>
+        </div>
+      </section>
 
-        <section className="card" style={{ padding: 24 }}>
+      {activeTab === "editor" ? (
+        <section className="card" style={{ padding: 24, marginBottom: 18 }}>
+          <div>
+            <div className="badge">我的个人案例库</div>
+            <h2 className="section-title" style={{ marginTop: 14 }}>新增案例 / 编辑案例</h2>
+          </div>
+          <div className="info-banner" style={{ marginTop: 12 }}>
+            新增案例时按固定字段沉淀；保存后会一直存在数据库。选了“其他自定义”时，会自动展开补充输入框。
+          </div>
+          <form onSubmit={saveCase} style={{ display: "grid", gap: 14, marginTop: 18 }}>
+            <div>
+              <label className="label">1️⃣ 案例问题</label>
+              <textarea className="textarea" rows={3} placeholder="自由填写" value={form.question} onChange={(e) => setForm({ ...form, question: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">2️⃣ 案例类型</label>
+              <select className="select" value={form.caseType} onChange={(e) => setForm({ ...form, caseType: e.target.value })}>
+                {CASE_TYPES.map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+              {form.caseType === "其他自定义" ? <input className="input" style={{ marginTop: 10 }} placeholder="填写自定义案例类型" value={form.caseTypeCustom} onChange={(e) => setForm({ ...form, caseTypeCustom: e.target.value })} /> : null}
+            </div>
+            <div>
+              <label className="label">3️⃣ 案例背景</label>
+              <textarea className="textarea" rows={4} placeholder="例如：长期断联，女方求问复合，两人分手原因为 xxx" value={form.background} onChange={(e) => setForm({ ...form, background: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">4️⃣ 牌面＋补牌</label>
+              <textarea className="textarea" rows={4} placeholder="自由填写" value={form.cardsAndClarifiers} onChange={(e) => setForm({ ...form, cardsAndClarifiers: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">5️⃣ 牌阵</label>
+              <select className="select" value={form.spreadType} onChange={(e) => setForm({ ...form, spreadType: e.target.value })}>
+                {SPREAD_TYPES.map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+              {form.spreadType === "其他自定义牌阵" ? <input className="input" style={{ marginTop: 10 }} placeholder="填写自定义牌阵" value={form.spreadTypeCustom} onChange={(e) => setForm({ ...form, spreadTypeCustom: e.target.value })} /> : null}
+            </div>
+            <div>
+              <label className="label">6️⃣ 解读方法</label>
+              <select className="select" value={form.readingMethod} onChange={(e) => setForm({ ...form, readingMethod: e.target.value })}>
+                {READING_METHODS.map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+              {form.readingMethod === "其他自定义方法" ? <input className="input" style={{ marginTop: 10 }} placeholder="填写自定义解读方法" value={form.readingMethodCustom} onChange={(e) => setForm({ ...form, readingMethodCustom: e.target.value })} /> : null}
+            </div>
+            <div>
+              <label className="label">7️⃣ 答案反馈</label>
+              <textarea className="textarea" rows={4} placeholder="自由填写" value={form.feedback} onChange={(e) => setForm({ ...form, feedback: e.target.value })} />
+            </div>
+            <div>
+              <label className="label">8️⃣ 案例详解</label>
+              <textarea className="textarea" rows={10} placeholder="比如：自我详细解读、解读拆分路径、思路复盘、避雷事项、常用牌与牌组合等" value={form.detailedAnalysis} onChange={(e) => setForm({ ...form, detailedAnalysis: e.target.value })} />
+            </div>
+            {message ? <div className="info-banner">{message}</div> : null}
+            <div className="item-actions">
+              <button className="btn btn-primary" disabled={saving}>{saving ? "保存中..." : form.id ? "保存修改" : "保存到我的案例库"}</button>
+              <button type="button" className="btn btn-secondary" onClick={resetForm}>清空表单</button>
+              <button type="button" className="btn btn-secondary" onClick={() => setActiveTab("list")}>去看我的案例列表</button>
+            </div>
+          </form>
+        </section>
+      ) : (
+        <section className="card" style={{ padding: 24, marginBottom: 18 }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
             <div>
               <div className="badge">我的案例列表</div>
               <h2 className="section-title" style={{ marginTop: 14 }}>当前显示 {filteredItems.length} 条</h2>
             </div>
-            <button className="btn btn-secondary" onClick={() => setShowList((v) => !v)}>{showList ? "折叠列表" : "展开列表"}</button>
+            <button className="btn btn-secondary" onClick={() => setActiveTab("editor")}>新建或编辑案例</button>
           </div>
           <div className="filter-row" style={{ marginTop: 16 }}>
-            <button className={`filter-chip ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilterMode('all')}>全部</button>
-            <button className={`filter-chip ${filter === 'draft' ? 'active' : ''}`} onClick={() => setFilterMode('draft')}>草稿待整理</button>
-            <button className={`filter-chip ${filter === 'submittable' ? 'active' : ''}`} onClick={() => setFilterMode('submittable')}>可投稿</button>
-            <button className={`filter-chip ${filter === 'submitted' ? 'active' : ''}`} onClick={() => setFilterMode('submitted')}>已投稿</button>
+            <button className={`filter-chip filter-chip-contrast ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilterMode('all')}>全部</button>
+            <button className={`filter-chip filter-chip-contrast ${filter === 'draft' ? 'active' : ''}`} onClick={() => setFilterMode('draft')}>草稿待整理</button>
+            <button className={`filter-chip filter-chip-contrast ${filter === 'submittable' ? 'active' : ''}`} onClick={() => setFilterMode('submittable')}>可投稿</button>
+            <button className={`filter-chip filter-chip-contrast ${filter === 'submitted' ? 'active' : ''}`} onClick={() => setFilterMode('submitted')}>已投稿</button>
           </div>
-          {showList ? (
-            <div className="list" style={{ marginTop: 16 }}>
-              {filteredItems.map((item) => {
-                const submission = submissionMap.get(item.id);
-                const statusText = submission?.status === "PENDING" ? "审核中" : submission?.status === "APPROVED" ? "已通过" : submission?.status === "REJECTED" ? "已驳回" : isDraftCase(item) ? "草稿" : "未投稿";
-                const isHighlighted = item.id === highlightId;
-                return (
-                  <article key={item.id} className="card" style={{ padding: 18, borderRadius: 20, border: isHighlighted ? '1px solid rgba(251,191,36,.5)' : undefined, boxShadow: isHighlighted ? '0 0 0 3px rgba(251,191,36,.12)' : undefined }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                      <div>
-                        <div style={{ fontSize: 18, fontWeight: 700 }}>{item.question || item.title}</div>
-                        <div className="muted" style={{ fontSize: 13, marginTop: 4 }}>{item.caseType || item.category || "未分类"} · {item.spreadType || "未设牌阵"} · {item.readingMethod || "未设方法"}</div>
-                      </div>
-                      <div className={`mini-badge ${submission?.status?.toLowerCase() || (isDraftCase(item) ? 'draft' : 'approved')}`}>{statusText}</div>
+          <div className="list" style={{ marginTop: 16 }}>
+            {filteredItems.map((item) => {
+              const submission = submissionMap.get(item.id);
+              const statusText = submission?.status === "PENDING" ? "审核中" : submission?.status === "APPROVED" ? "已通过" : submission?.status === "REJECTED" ? "已驳回" : isDraftCase(item) ? "草稿" : "未投稿";
+              const isHighlighted = item.id === highlightId;
+              return (
+                <article key={item.id} className="card" style={{ padding: 18, borderRadius: 20, border: isHighlighted ? '1px solid rgba(251,191,36,.5)' : undefined, boxShadow: isHighlighted ? '0 0 0 3px rgba(251,191,36,.12)' : undefined }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ fontSize: 18, fontWeight: 700 }}>{item.question || item.title}</div>
+                      <div className="muted" style={{ fontSize: 13, marginTop: 4 }}>{item.caseType || item.category || "未分类"} · {item.spreadType || "未设牌阵"} · {item.readingMethod || "未设方法"}</div>
                     </div>
-                    {item.background ? <p className="muted" style={{ marginTop: 10 }}>{item.background}</p> : null}
-                    <div className="tag-list" style={{ marginTop: 10 }}>
-                      {isDraftCase(item) ? <span className="tag">待整理</span> : null}
-                      {isSubmittableCase(item) ? <span className="tag">可投稿</span> : null}
-                      {item.isSubmitted ? <span className="tag">已进入审核流程</span> : null}
-                    </div>
-                    <div className="muted-sm" style={{ marginTop: 8 }}>最后更新：{fmt(item.updatedAt)}</div>
-                    {submission ? <div className="muted-sm" style={{ marginTop: 8 }}>投稿记录：{fmt(submission.createdAt)} · {submission.reviewNote || "暂无审核备注"}</div> : null}
-                    <div className="item-actions">
-                      <button className="btn btn-secondary" onClick={() => setActive(item)}>查看详情</button>
-                      <button className="btn btn-secondary" onClick={() => editCase(item)} disabled={item.isSubmitted}>编辑</button>
-                      <button className="btn btn-danger" onClick={() => deleteCase(item)} disabled={item.isSubmitted}>删除</button>
-                      <button className="btn btn-primary" onClick={() => submitCase(item)} disabled={!isSubmittableCase(item) || submission?.status === "APPROVED"}>投稿共享库</button>
-                    </div>
-                  </article>
-                );
-              })}
-              {!filteredItems.length ? <div className="muted">当前筛选下没有案例。你可以先去练习页完成一条新记录，或者切换筛选查看其它状态。</div> : null}
-            </div>
-          ) : null}
+                    <div className={`mini-badge ${submission?.status?.toLowerCase() || (isDraftCase(item) ? 'draft' : 'approved')}`}>{statusText}</div>
+                  </div>
+                  <div className="muted" style={{ marginTop: 10, lineHeight: 1.7 }}>{item.summary || item.background || item.content.slice(0, 90)}...</div>
+                  <div className="muted-sm" style={{ marginTop: 8 }}>创建于 {fmt(item.createdAt)} · 最后更新 {fmt(item.updatedAt)}</div>
+                  {submission ? <div className="muted-sm" style={{ marginTop: 8 }}>投稿记录：{fmt(submission.createdAt)} · {submission.reviewNote || "暂无审核备注"}</div> : null}
+                  <div className="item-actions">
+                    <button className="btn btn-secondary" onClick={() => setActive(item)}>查看详情</button>
+                    <button className="btn btn-secondary" onClick={() => editCase(item)} disabled={item.isSubmitted}>编辑</button>
+                    <button className="btn btn-danger" onClick={() => deleteCase(item)} disabled={item.isSubmitted}>删除</button>
+                    <button className="btn btn-primary" onClick={() => submitCase(item)} disabled={!isSubmittableCase(item) || submission?.status === "APPROVED"}>投稿共享库</button>
+                  </div>
+                </article>
+              );
+            })}
+            {!filteredItems.length ? <div className="muted">当前筛选下没有案例。你可以先去练习页完成一条新记录，或者切换筛选查看其它状态。</div> : null}
+          </div>
         </section>
-      </div>
+      )}
 
       {active ? (
         <div className="modal-backdrop" onClick={() => setActive(null)}>

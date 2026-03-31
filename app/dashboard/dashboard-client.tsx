@@ -159,16 +159,24 @@ export function DashboardClient({ initialUser }: { initialUser: Omit<User, "canR
 
   return (
     <AppShell user={me}>
-      <section className="dashboard-hero card">
+      <section className="dashboard-hero dashboard-dreamscape card">
+        <div className="dashboard-stars" aria-hidden="true">
+          <span className="shooting-star shooting-star-1" />
+          <span className="shooting-star shooting-star-2" />
+          <span className="dream-orb dream-orb-1" />
+          <span className="dream-orb dream-orb-2" />
+        </div>
         <div>
-          <div className="badge">成长控制台</div>
-          <h1 className="page-title" style={{ marginTop: 14 }}>欢迎回来，{me.username}</h1>
+          <div className="badge">月夜总揽</div>
+          <div className="dashboard-overline">LENORMAND MOONLIT PATH · 进度、练习与案例沉淀一屏掌握</div>
+          <h1 className="page-title" style={{ marginTop: 14 }}>不是机械打卡，而是在夜色里继续推进你的学习</h1>
           <p className="muted dashboard-hero-copy">
-            今天是 {weekdayLabel()}。继续你的雷诺曼学习、练习与案例沉淀，把零散使用变成持续成长。
+            {me.username}，今晚是 {weekdayLabel()}。你可以在这里继续学习牌义、补完个人案例、查看共享库权限与最近进度，让整条学习路径既梦幻也实用。
           </p>
           <div className="dashboard-hero-actions">
-            <a className="btn btn-primary" href="#today-learning">继续今日任务</a>
+            <a className="btn btn-primary" href="#today-learning">开始今夜学习</a>
             <Link className="btn btn-secondary" href="/progress">查看学习进度</Link>
+            <Link className="btn btn-secondary" href="/personal-cases">继续个人案例库</Link>
           </div>
         </div>
         <div className="dashboard-kpi-grid">

@@ -13,6 +13,10 @@ type SharedCase = {
   summary: string | null;
   content: string;
   publishedAt: string;
+  question?: string | null;
+  cardsAndClarifiers?: string | null;
+  background?: string | null;
+  detailedAnalysis?: string | null;
 };
 
 function fmt(dt?: string | Date | null) {
@@ -27,6 +31,7 @@ export default function SharedCasesPage() {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<SharedCase | null>(null);
   const [query, setQuery] = useState("");
+  const [revealedIds, setRevealedIds] = useState<string[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -52,7 +57,7 @@ export default function SharedCasesPage() {
 
   const filtered = useMemo(() => {
     if (!query) return items;
-    return items.filter((item) => [item.title, item.category || "", item.summary || "", item.tags.join(" "), item.content].some((field) => field.includes(query)));
+    return items.filter((item) => [item.title, item.question || "", item.cardsAndClarifiers || "", item.category || "", item.summary || "", item.tags.join(" "), item.content].some((field) => field.includes(query)));
   }, [items, query]);
 
   if (loading || !me) return <div className="container">加载中...</div>;
@@ -80,15 +85,33 @@ export default function SharedCasesPage() {
       ) : (
         <section className="card" style={{ padding: 24 }}>
           <div className="cards-grid three">
-            {filtered.map((item) => (
-              <article key={item.id} className="card-item" onClick={() => setActive(item)}>
-                <div className="card-num">公开时间：{fmt(item.publishedAt)}</div>
-                <div className="card-name" style={{ marginTop: 10 }}>{item.title}</div>
-                <div className="card-core">{item.category || "共享案例"}</div>
-                <div className="card-preview">{item.summary || item.content.slice(0, 90) + "..."}</div>
-                <div className="tag-list" style={{ marginTop: 10 }}>{item.tags.slice(0, 4).map((tag) => <span key={tag} className="tag">{tag}</span>)}</div>
-              </article>
-            ))}
+            {filtered.map((item) => {
+              const revealed = revealedIds.includes(item.id);
+              return (
+                <article key={item.id} className="card-item shared-case-card">
+                  <div className="card-num">公开时间：{fmt(item.publishedAt)}</div>
+                  <div className="card-name" style={{ marginTop: 10 }}>{item.title}</div>
+                  <div className="card-core">{item.category || "共享案例"}</div>
+                  <div className="shared-case-section-label">问题</div>
+                  <div className="card-preview">{item.question || item.summary || "暂未填写问题。"}</div>
+                  <div className="shared-case-section-label" style={{ marginTop: 12 }}>牌面</div>
+                  <div className="card-preview">{item.cardsAndClarifiers || "暂未公开牌面信息。"}</div>
+                  {revealed ? (
+                    <div className="shared-answer-box" style={{ marginTop: 14 }}>
+                      <div className="shared-case-section-label">答案 / 解读</div>
+                      <div className="pre">{item.detailedAnalysis || item.content || "暂无答案。"}</div>
+                    </div>
+                  ) : (
+                    <div className="shared-answer-placeholder" style={{ marginTop: 14 }}>答案默认折叠，先自己练习，再点按钮查看。</div>
+                  )}
+                  <div className="tag-list" style={{ marginTop: 12 }}>{item.tags.slice(0, 4).map((tag) => <span key={tag} className="tag">{tag}</span>)}</div>
+                  <div className="item-actions" style={{ marginTop: 14 }}>
+                    <button className="btn btn-primary" onClick={() => setRevealedIds((prev) => prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id])}>{revealed ? "收起答案" : "点答案"}</button>
+                    <button className="btn btn-secondary" onClick={() => setActive(item)}>查看完整案例</button>
+                  </div>
+                </article>
+              );
+            })}
           </div>
           {!filtered.length ? <div className="muted" style={{ marginTop: 18 }}>当前没有可显示的共享案例。</div> : null}
         </section>
@@ -105,9 +128,11 @@ export default function SharedCasesPage() {
               </div>
               <button className="modal-close" onClick={() => setActive(null)}>×</button>
             </div>
+            {active.question ? <section style={{ marginTop: 18 }}><div className="section-title">问题</div><div className="pre muted">{active.question}</div></section> : null}
+            {active.cardsAndClarifiers ? <section style={{ marginTop: 18 }}><div className="section-title">牌面</div><div className="pre">{active.cardsAndClarifiers}</div></section> : null}
             {active.summary ? <section style={{ marginTop: 18 }}><div className="section-title">案例摘要</div><div className="pre muted">{active.summary}</div></section> : null}
             <section style={{ marginTop: 18 }}><div className="section-title">适用标签</div><div className="tag-list">{active.tags.map((tag) => <span key={tag} className="tag">{tag}</span>)}</div></section>
-            <section style={{ marginTop: 18 }}><div className="section-title">案例正文</div><div className="pre">{active.content}</div></section>
+            <section style={{ marginTop: 18 }}><div className="section-title">答案 / 完整解读</div><div className="pre">{active.detailedAnalysis || active.content}</div></section>
           </div>
         </div>
       ) : null}

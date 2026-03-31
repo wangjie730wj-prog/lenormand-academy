@@ -19,5 +19,28 @@ export async function GET() {
     orderBy: { publishedAt: "desc" },
   });
 
-  return NextResponse.json({ items, accessUntil: auth.user.sharedAccessUntil });
+  const sourceIds = items.map((item) => item.sourcePersonalCaseId);
+  const personalCases = sourceIds.length
+    ? await prisma.personalCase.findMany({
+        where: { id: { in: sourceIds } },
+        select: {
+          id: true,
+          question: true,
+          cardsAndClarifiers: true,
+          background: true,
+          detailedAnalysis: true,
+        },
+      })
+    : [];
+
+  const detailMap = new Map(personalCases.map((item) => [item.id, item]));
+  const enriched = items.map((item) => ({
+    ...item,
+    question: detailMap.get(item.sourcePersonalCaseId)?.question ?? null,
+    cardsAndClarifiers: detailMap.get(item.sourcePersonalCaseId)?.cardsAndClarifiers ?? null,
+    background: detailMap.get(item.sourcePersonalCaseId)?.background ?? null,
+    detailedAnalysis: detailMap.get(item.sourcePersonalCaseId)?.detailedAnalysis ?? null,
+  }));
+
+  return NextResponse.json({ items: enriched, accessUntil: auth.user.sharedAccessUntil });
 }
