@@ -32,6 +32,8 @@ export default function SharedCasesPage() {
   const [active, setActive] = useState<SharedCase | null>(null);
   const [query, setQuery] = useState("");
   const [revealedIds, setRevealedIds] = useState<string[]>([]);
+  const [notes, setNotes] = useState<Record<string, string>>({});
+  const [practicedIds, setPracticedIds] = useState<string[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -55,10 +57,38 @@ export default function SharedCasesPage() {
     void load();
   }, []);
 
+  useEffect(() => {
+    if (!me || typeof window === "undefined") return;
+    const savedNotes = window.localStorage.getItem(`lenormand-shared-notes:${me.username}`);
+    const savedPracticed = window.localStorage.getItem(`lenormand-shared-practiced:${me.username}`);
+    if (savedNotes) setNotes(JSON.parse(savedNotes));
+    if (savedPracticed) setPracticedIds(JSON.parse(savedPracticed));
+  }, [me]);
+
+  useEffect(() => {
+    if (!me || typeof window === "undefined") return;
+    window.localStorage.setItem(`lenormand-shared-notes:${me.username}`, JSON.stringify(notes));
+  }, [notes, me]);
+
+  useEffect(() => {
+    if (!me || typeof window === "undefined") return;
+    window.localStorage.setItem(`lenormand-shared-practiced:${me.username}`, JSON.stringify(practicedIds));
+  }, [practicedIds, me]);
+
   const filtered = useMemo(() => {
     if (!query) return items;
     return items.filter((item) => [item.title, item.question || "", item.cardsAndClarifiers || "", item.category || "", item.summary || "", item.tags.join(" "), item.content].some((field) => field.includes(query)));
   }, [items, query]);
+
+  const practicedCount = practicedIds.length;
+
+  function toggleReveal(id: string) {
+    setRevealedIds((prev) => prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]);
+  }
+
+  function markPracticed(id: string) {
+    setPracticedIds((prev) => prev.includes(id) ? prev : [...prev, id]);
+  }
 
   if (loading || !me) return <div className="container">加载中...</div>;
 
@@ -67,12 +97,13 @@ export default function SharedCasesPage() {
       <section className="card" style={{ padding: 24, marginBottom: 18 }}>
         <div className="badge">共享案例库</div>
         <h1 className="page-title" style={{ marginTop: 14 }}>共享案例学习区</h1>
-        <p className="muted">这一版不再把共享权限完全写死：管理员可以手动决定谁是付费学员、谁长期可读、谁到哪天截止；投稿审核时的奖励天数也可以自由改。</p>
+        <p className="muted">这一版升级成了练习模式：先看问题与牌面，自己写判断，再点答案核对。你的练习记录只保存在你自己的设备里，不会公开给别人。</p>
         <div className="stat-grid" style={{ marginTop: 16 }}>
           <div className="stat-box"><div className="muted-sm">当前角色</div><div className="stat-value" style={{ fontSize: 24 }}>{me.role}</div></div>
           <div className="stat-box"><div className="muted-sm">是否可读</div><div className="stat-value" style={{ fontSize: 24 }}>{me.canReadSharedCase ? "可读" : "锁定"}</div></div>
           <div className="stat-box"><div className="muted-sm">权限状态</div><div className="muted" style={{ marginTop: 8 }}>{me.sharedAccessPermanent ? "永久可读" : fmt(me.sharedAccessUntil)}</div></div>
           <div className="stat-box"><div className="muted-sm">共享案例总数</div><div className="stat-value">{items.length}</div></div>
+          <div className="stat-box"><div className="muted-sm">已练习</div><div className="stat-value">{practicedCount}</div></div>
           <div className="stat-box"><div className="muted-sm">搜索</div><input className="input" placeholder="搜标题 / 标签 / 内容" value={query} onChange={(e) => setQuery(e.target.value)} /></div>
         </div>
       </section>
@@ -87,6 +118,8 @@ export default function SharedCasesPage() {
           <div className="cards-grid three">
             {filtered.map((item) => {
               const revealed = revealedIds.includes(item.id);
+              const note = notes[item.id] || "";
+              const practiced = practicedIds.includes(item.id);
               return (
                 <article key={item.id} className="card-item shared-case-card">
                   <div className="card-num">公开时间：{fmt(item.publishedAt)}</div>
@@ -96,18 +129,27 @@ export default function SharedCasesPage() {
                   <div className="card-preview">{item.question || item.summary || "暂未填写问题。"}</div>
                   <div className="shared-case-section-label" style={{ marginTop: 12 }}>牌面</div>
                   <div className="card-preview">{item.cardsAndClarifiers || "暂未公开牌面信息。"}</div>
+                  <div className="shared-case-section-label" style={{ marginTop: 12 }}>我的判断</div>
+                  <textarea
+                    className="learning-note"
+                    placeholder="先自己写判断，再点答案核对。这里适合记录：主线判断、关键组合、你最犹豫的地方。"
+                    value={note}
+                    onChange={(e) => setNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                  />
                   {revealed ? (
                     <div className="shared-answer-box" style={{ marginTop: 14 }}>
                       <div className="shared-case-section-label">答案 / 解读</div>
                       <div className="pre">{item.detailedAnalysis || item.content || "暂无答案。"}</div>
                     </div>
                   ) : (
-                    <div className="shared-answer-placeholder" style={{ marginTop: 14 }}>答案默认折叠，先自己练习，再点按钮查看。</div>
+                    <div className="shared-answer-placeholder" style={{ marginTop: 14 }}>先自己判断，再点按钮查看老师解读。这样共享案例库更像练习，不只是看答案。</div>
                   )}
                   <div className="tag-list" style={{ marginTop: 12 }}>{item.tags.slice(0, 4).map((tag) => <span key={tag} className="tag">{tag}</span>)}</div>
-                  <div className="item-actions" style={{ marginTop: 14 }}>
-                    <button className="btn btn-primary" onClick={() => setRevealedIds((prev) => prev.includes(item.id) ? prev.filter((id) => id !== item.id) : [...prev, item.id])}>{revealed ? "收起答案" : "点答案"}</button>
+                  <div className="learning-toolbar">
+                    <button className="btn btn-primary" onClick={() => toggleReveal(item.id)}>{revealed ? "收起答案" : "点答案"}</button>
+                    <button className="btn btn-secondary" onClick={() => markPracticed(item.id)}>{practiced ? "已标记练习" : "标记我已练习"}</button>
                     <button className="btn btn-secondary" onClick={() => setActive(item)}>查看完整案例</button>
+                    <div className="learning-status">{practiced ? "已加入你的练习记录" : "尚未标记练习"}</div>
                   </div>
                 </article>
               );
