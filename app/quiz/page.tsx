@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { MeResponse } from "@/types";
 import { AppShell } from "@/components/app-shell";
+import { CardVisual } from "@/components/card-visual";
 import { CARDS, COMBO_QS } from "@/lib/cards";
 import { loadProgress, saveProgress, updateStreak, type ProgressState } from "@/lib/client-progress";
 
@@ -59,7 +60,7 @@ export default function QuizPage() {
         if (modeValue === "key2name") {
           return { type: modeValue, cardIdx, question: card.tags.slice(0, 4).join("、"), answer: card.name, options: shuffle([card.name, ...wrongs.map((w) => w.name)]) };
         }
-        return { type: modeValue, cardIdx, question: `${card.icon} ${card.name}`, answer: card.core, options: shuffle([card.core, ...wrongs.map((w) => w.core)]) };
+        return { type: modeValue, cardIdx, question: card.name, answer: card.core, options: shuffle([card.core, ...wrongs.map((w) => w.core)]) };
       });
     }
     setQuestions(next);
@@ -91,7 +92,12 @@ export default function QuizPage() {
       {current && !done ? (
         <section className="card" style={{ padding: 24, marginTop: 18 }}>
           <div className="muted-sm">第 {idx + 1} / {questions.length} 题 · 正确 {score.correct} · 错误 {score.wrong}</div>
-          <h2 className="page-title" style={{ marginTop: 14 }}>{current.type === "combo" ? current.question : current.question}</h2>
+          <div style={{ marginTop: 14, display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+            {current.type !== "combo" && current.type !== "key2name" ? (
+              <CardVisual src={CARDS[current.cardIdx]?.image} alt={CARDS[current.cardIdx]?.name ?? current.question} emoji={CARDS[current.cardIdx]?.icon} size={140} />
+            ) : null}
+            <h2 className="page-title">{current.question}</h2>
+          </div>
           {current.helper ? <div className="muted">{current.helper}</div> : null}
           <div className="list" style={{ marginTop: 18 }}>
             {current.options.map((opt) => {

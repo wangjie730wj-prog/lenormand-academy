@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { MeResponse } from "@/types";
 import { AppShell } from "@/components/app-shell";
+import { CardVisual } from "@/components/card-visual";
 import { CARDS } from "@/lib/cards";
 import { loadProgress, saveProgress, updateStreak, type ProgressState } from "@/lib/client-progress";
 
@@ -52,7 +53,7 @@ export default function ProgressPage() {
             const state = progress.mastered.includes(idx) ? "✓" : progress.favs.includes(idx) ? "★" : progress.wrongIds.includes(idx) ? "✗" : "";
             return (
               <div key={card.num} className={`card-item ${progress.mastered.includes(idx) ? "mastered" : ""} ${progress.favs.includes(idx) ? "fav" : ""}`}>
-                <div className="card-icon">{card.icon}</div>
+                <div className="card-icon"><CardVisual src={card.image} alt={card.name} emoji={card.icon} size={82} /></div>
                 <div className="card-name">{card.name}</div>
                 <div className="muted-sm" style={{ marginTop: 6 }}>{card.core}</div>
                 <div style={{ marginTop: 10, color: state === "✗" ? "#fca5a5" : "#f5d56e", fontWeight: 700 }}>{state || "—"}</div>

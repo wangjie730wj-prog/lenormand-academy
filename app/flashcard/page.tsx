@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { MeResponse } from "@/types";
 import { AppShell } from "@/components/app-shell";
+import { CardVisual } from "@/components/card-visual";
 import { CARDS } from "@/lib/cards";
 import { loadProgress, saveProgress, updateStreak, type ProgressState } from "@/lib/client-progress";
 
@@ -71,7 +72,7 @@ export default function FlashcardPage() {
           <div className="flash-card" style={{ marginTop: 16 }} onClick={() => setFlipped((v) => !v)}>
             {!flipped ? (
               <div>
-                <div style={{ fontSize: 68 }}>{card.icon}</div>
+                <CardVisual src={card.image} alt={card.name} emoji={card.icon} size={148} />
                 <h2 className="page-title" style={{ marginTop: 12 }}>{card.name}</h2>
                 <div className="muted">点击翻面查看核心牌义</div>
               </div>

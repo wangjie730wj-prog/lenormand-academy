@@ -9,9 +9,13 @@ export type AcademyCard = {
   tags: string[];
   notes: string;
   combos: CardCombo[];
+  image?: string;
 };
 
-export const CARDS = cardsJson as AcademyCard[];
+export const CARDS = (cardsJson as AcademyCard[]).map((card) => ({
+  ...card,
+  image: `/cards/${card.num}.png`,
+}));
 export const COMBO_QS = CARDS.flatMap((c, cardIdx) =>
   c.combos.map((cb) => ({ q: cb.k, a: cb.v, cardName: c.name, cardIcon: c.icon, cardIdx }))
 );
