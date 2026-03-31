@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { MeResponse } from "@/types";
 import { AppShell } from "@/components/app-shell";
+import { CardVisual } from "@/components/card-visual";
 import { CARDS, type AcademyCard } from "@/lib/cards";
 import { loadProgress, saveProgress, updateStreak, type ProgressState } from "@/lib/client-progress";
 
@@ -78,7 +79,7 @@ export default function LibraryPage() {
             return (
               <div key={card.num} className={`card-item ${isFav ? "fav" : ""} ${isMastered ? "mastered" : ""}`} onClick={() => setActive(card)}>
                 <div className="card-num">No.{card.num}</div>
-                <div className="card-icon">{card.icon}</div>
+                <div className="card-icon"><CardVisual src={card.image} alt={card.name} emoji={card.icon} size={86} /></div>
                 <div className="card-name">{card.name}</div>
                 <div className="card-core">{card.core}</div>
                 <div className="card-preview">{card.tags.slice(0, 6).join(" · ")}</div>
@@ -93,7 +94,8 @@ export default function LibraryPage() {
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-head">
               <div>
-                <div className="badge">{active.icon} 牌义详情</div>
+                <div className="badge">牌义详情</div>
+                <div style={{ marginTop: 14 }}><CardVisual src={active.image} alt={active.name} emoji={active.icon} size={120} /></div>
                 <h2 className="page-title" style={{ marginTop: 12 }}>{active.name}</h2>
                 <div className="muted">{active.core}</div>
               </div>

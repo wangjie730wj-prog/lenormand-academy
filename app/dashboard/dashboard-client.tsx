@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
+import { CardVisual } from "@/components/card-visual";
 import { CARDS } from "@/lib/cards";
 import { defaultProgress, loadProgress, type ProgressState } from "@/lib/client-progress";
 import type { MeResponse } from "@/types";
@@ -214,7 +215,7 @@ export function DashboardClient({ initialUser }: { initialUser: Omit<User, "canR
             <button className="dashboard-swap-btn" type="button" onClick={() => setOracleIndex((v) => (v + 1) % CARDS.length)}>换一张</button>
           </div>
           <div className="dashboard-oracle-card">
-            <div className="dashboard-oracle-icon">{todayCard.icon}</div>
+            <div className="dashboard-oracle-icon"><CardVisual src={todayCard.image} alt={todayCard.name} emoji={todayCard.icon} size={132} /></div>
             <div className="dashboard-oracle-name">{todayCard.name}</div>
             <div className="dashboard-oracle-tags">{todayCard.tags.slice(0, 3).join(' · ')}</div>
             <p className="dashboard-oracle-copy">今天适合提高对 {todayCard.core} 的敏感度。先不要急着下判断，先看这张牌在关系、动机与气氛里究竟把什么悄悄推到台前。</p>
@@ -251,7 +252,7 @@ export function DashboardClient({ initialUser }: { initialUser: Omit<User, "canR
           <p className="muted">从一张牌、一个关键词继续推进，把理解框架一点点搭稳。</p>
           <div className="dashboard-subpanel">
             <div className="dashboard-subpanel-label">今日推荐</div>
-            <div className="dashboard-card-title">{todayCard.icon} {todayCard.name}</div>
+            <div className="dashboard-card-title">{todayCard.name}</div>
             <div className="dashboard-highlight">核心：{todayCard.core}</div>
             <p className="muted">推荐理由：你还没有标记掌握这张牌，先把基础牌义、主题词和常见组合再过一遍。</p>
             <div className="tag-list">
@@ -260,7 +261,7 @@ export function DashboardClient({ initialUser }: { initialUser: Omit<User, "canR
           </div>
           <div className="dashboard-subpanel">
             <div className="dashboard-subpanel-label">继续上次学习</div>
-            <div className="dashboard-card-title">{continueCard.icon} {continueCard.name}</div>
+            <div className="dashboard-card-title">{continueCard.name}</div>
             <div className="muted">{progress.favs.length > 0 ? "你收藏过这张牌，适合继续深化。" : progress.wrongIds.length > 0 ? "这张牌在错题中出现过，适合优先复习。" : "先从这张基础牌开始建立节奏。"}</div>
             <div className="dashboard-inline-note">当前状态：{learnedCount > 0 ? "已有学习积累，建议继续补强薄弱点" : "你还没有开始系统学习，现在正适合建立第一轮基础"}</div>
           </div>

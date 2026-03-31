@@ -14,7 +14,7 @@ export type AcademyCard = {
 
 export const CARDS = (cardsJson as AcademyCard[]).map((card) => ({
   ...card,
-  image: `/cards/${card.num}.png`,
+  image: `/cards-jpg/${card.num}.jpg?v=20260331`,
 }));
 export const COMBO_QS = CARDS.flatMap((c, cardIdx) =>
   c.combos.map((cb) => ({ q: cb.k, a: cb.v, cardName: c.name, cardIcon: c.icon, cardIdx }))

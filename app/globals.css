@@ -93,7 +93,7 @@ hr.sep { border: 0; border-top: 1px solid rgba(234,179,8,0.12); margin: 16px 0; 
 .cards-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.cards-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}@media(max-width:1100px){.cards-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:820px){.cards-grid,.cards-grid.three{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){.cards-grid,.cards-grid.three{grid-template-columns:1fr}}
 .card-item{padding:18px;border-radius:20px;border:1px solid rgba(234,179,8,.14);background:rgba(255,255,255,.03);cursor:pointer;transition:.2s}.card-item:hover{transform:translateY(-2px);border-color:rgba(168,85,247,.6)}
 .card-item.mastered{border-color:rgba(74,222,128,.35)}.card-item.fav{box-shadow:0 0 0 1px rgba(245,213,110,.25) inset}
-.card-num{font-size:12px;color:rgba(248,237,207,.55)}.card-icon{font-size:34px;margin:10px 0}.card-name{font-size:18px;font-weight:700}.card-core{margin-top:8px;color:#f5d56e}.card-preview{margin-top:8px;font-size:13px;color:rgba(248,237,207,.62);line-height:1.6}
+.card-num{font-size:12px;color:rgba(248,237,207,.55)}.card-icon{margin:12px 0;display:flex;justify-content:center;align-items:center;min-height:128px}.card-name{font-size:18px;font-weight:700}.card-core{margin-top:8px;color:#f5d56e}.card-preview{margin-top:8px;font-size:13px;color:rgba(248,237,207,.62);line-height:1.6}
 .filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.filter-chip{padding:8px 12px;border-radius:999px;border:1px solid rgba(234,179,8,.12);background:rgba(255,255,255,.04);color:#f8f4ea;cursor:pointer}.filter-chip.active{background:rgba(124,58,237,.16);border-color:rgba(168,85,247,.5);color:#fff}
 .search-input{max-width:320px}
 .tag-list{display:flex;flex-wrap:wrap;gap:8px}.tag{padding:6px 10px;border-radius:999px;background:rgba(245,213,110,.08);border:1px solid rgba(245,213,110,.18);font-size:12px}
@@ -201,3 +201,6 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;background:ra
 .learning-note{width:100%;margin-top:12px;padding:12px 14px;border-radius:16px;border:1px solid rgba(245,213,110,.12);background:rgba(255,255,255,.03);color:#f8f4ea;line-height:1.7;min-height:110px;resize:vertical}
 .learning-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
 .learning-status{font-size:13px;color:rgba(248,237,207,.68)}
+
+.dashboard-oracle-icon{display:flex;justify-content:center;align-items:center;min-height:210px}
+@media (max-width: 760px){.card-icon{min-height:100px}.dashboard-oracle-icon{min-height:170px}}
