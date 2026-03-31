@@ -315,19 +315,31 @@ export default function PersonalCasesClient({ initialFilter, initialMode, initia
         </div>
       </section>
 
-      <section className="card" style={{ padding: 24, marginBottom: 18 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+      <section className="cases-shell">
+        <aside className="card cases-sidebar">
           <div>
             <div className="badge">个人案例库</div>
-            <h2 className="section-title" style={{ marginTop: 14 }}>用标签切换你的记录区与案例列表</h2>
+            <h2 className="section-title" style={{ marginTop: 14 }}>我的案例工作区</h2>
+            <p className="muted" style={{ marginTop: 10 }}>把入口放到左侧，右边一次只展开一个模块，看起来会更完整，也更像真正的案例后台。</p>
           </div>
-          <div className="tab-switcher" role="tablist" aria-label="个人案例库视图切换">
-            <button className={`tab-chip ${activeTab === "editor" ? "active" : ""}`} onClick={() => setActiveTab("editor")} role="tab" aria-selected={activeTab === "editor"}>我的个人案例库</button>
-            <button className={`tab-chip ${activeTab === "list" ? "active" : ""}`} onClick={() => setActiveTab("list")} role="tab" aria-selected={activeTab === "list"}>我的案例列表</button>
+          <div className="cases-sidebar-nav" role="tablist" aria-label="个人案例库视图切换">
+            <button className={`cases-sidebar-link ${activeTab === "editor" ? "is-active" : ""}`} onClick={() => setActiveTab("editor")} role="tab" aria-selected={activeTab === "editor"}>
+              <span className="cases-sidebar-title">我的个人案例库</span>
+              <span className="cases-sidebar-desc">新建、编辑与长期沉淀</span>
+            </button>
+            <button className={`cases-sidebar-link ${activeTab === "list" ? "is-active" : ""}`} onClick={() => setActiveTab("list")} role="tab" aria-selected={activeTab === "list"}>
+              <span className="cases-sidebar-title">我的案例列表</span>
+              <span className="cases-sidebar-desc">查看状态、筛选、投稿共享库</span>
+            </button>
+            <button className="cases-sidebar-link" onClick={() => router.push('/practice')}>
+              <span className="cases-sidebar-title">开始一次新练习</span>
+              <span className="cases-sidebar-desc">先抽牌，再沉淀到案例库</span>
+            </button>
           </div>
-        </div>
-      </section>
+          <div className="cases-sidebar-tip">当前：{activeTab === "editor" ? "右侧显示案例编辑与保存区" : "右侧显示案例列表与投稿状态"}</div>
+        </aside>
 
+        <div>
       {activeTab === "editor" ? (
         <section className="card" style={{ padding: 24, marginBottom: 18 }}>
           <div>
@@ -432,6 +444,8 @@ export default function PersonalCasesClient({ initialFilter, initialMode, initia
           </div>
         </section>
       )}
+        </div>
+      </section>
 
       {active ? (
         <div className="modal-backdrop" onClick={() => setActive(null)}>

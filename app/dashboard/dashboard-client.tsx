@@ -87,6 +87,7 @@ export function DashboardClient({ initialUser }: { initialUser: Omit<User, "canR
   const [sharedCases, setSharedCases] = useState<SharedCase[]>([]);
   const [loading, setLoading] = useState(true);
   const [sharedLocked, setSharedLocked] = useState(false);
+  const [oracleIndex, setOracleIndex] = useState(0);
 
   useEffect(() => {
     setProgress(loadProgress(initialUser.username));
@@ -129,9 +130,9 @@ export function DashboardClient({ initialUser }: { initialUser: Omit<User, "canR
   const favouriteCount = progress.favs.length;
 
   const todayCard = useMemo(() => {
-    const nextUnmastered = CARDS.find((_, idx) => !progress.mastered.includes(idx));
-    return nextUnmastered || CARDS[0];
-  }, [progress.mastered]);
+    if (!CARDS.length) return CARDS[0];
+    return CARDS[oracleIndex % CARDS.length];
+  }, [oracleIndex]);
 
   const continueCard = useMemo(() => {
     if (progress.favs.length > 0) {
@@ -163,43 +164,78 @@ export function DashboardClient({ initialUser }: { initialUser: Omit<User, "canR
         <div className="dashboard-stars" aria-hidden="true">
           <span className="shooting-star shooting-star-1" />
           <span className="shooting-star shooting-star-2" />
+          <span className="shooting-star shooting-star-3" />
           <span className="dream-orb dream-orb-1" />
           <span className="dream-orb dream-orb-2" />
+          <span className="dream-orb dream-orb-3" />
         </div>
-        <div>
-          <div className="badge">月夜总揽</div>
-          <div className="dashboard-overline">LENORMAND MOONLIT PATH · 进度、练习与案例沉淀一屏掌握</div>
-          <h1 className="page-title" style={{ marginTop: 14 }}>不是机械打卡，而是在夜色里继续推进你的学习</h1>
-          <p className="muted dashboard-hero-copy">
-            {me.username}，今晚是 {weekdayLabel()}。你可以在这里继续学习牌义、补完个人案例、查看共享库权限与最近进度，让整条学习路径既梦幻也实用。
-          </p>
-          <div className="dashboard-hero-actions">
-            <a className="btn btn-primary" href="#today-learning">开始今夜学习</a>
-            <Link className="btn btn-secondary" href="/progress">查看学习进度</Link>
-            <Link className="btn btn-secondary" href="/personal-cases">继续个人案例库</Link>
+        <div className="dashboard-hero-main">
+          <div className="dashboard-hero-copywrap">
+            <div className="dashboard-pill-row">
+              <span className="badge">月夜学院课程</span>
+              <span className="dashboard-soft-pill">今晚适合把直觉放慢一点</span>
+            </div>
+            <div className="dashboard-overline">LENORMAND MOONLIT PATH · 在薄雾、符号与暗示里，读懂牌的低语</div>
+            <h1 className="dashboard-display-title">不是背牌义，<br />而是在夜色里听懂每张牌的秘密</h1>
+            <p className="muted dashboard-hero-copy">
+              {me.username}，今晚是 {weekdayLabel()}。你会像走进一座深夜仍在发光的学院，从单张牌的气息开始，穿过双牌之间的牵引与误导，最后在真实案例里，把一组牌读成一段正在发生的故事。
+            </p>
+            <div className="dashboard-hero-actions">
+              <a className="btn btn-primary" href="#today-learning">开始今夜学习</a>
+              <Link className="btn btn-secondary" href="/library">抽一张今夜引导牌</Link>
+              <Link className="btn btn-secondary" href="/personal-cases">继续个人案例库</Link>
+            </div>
+          </div>
+          <div className="dashboard-mini-grid dashboard-stats-row">
+            <article className="dashboard-mini-card dashboard-stat-glass">
+              <div className="muted-sm">已掌握牌</div>
+              <div className="dashboard-mini-value">{learnedCount}</div>
+              <div className="dashboard-mini-text">总计 {totalCards} 张</div>
+            </article>
+            <article className="dashboard-mini-card dashboard-stat-glass">
+              <div className="muted-sm">已收藏牌</div>
+              <div className="dashboard-mini-value">{favouriteCount}</div>
+              <div className="dashboard-mini-text">你最想反复回看的牌</div>
+            </article>
+            <article className="dashboard-mini-card dashboard-stat-glass">
+              <div className="muted-sm">连续学习</div>
+              <div className="dashboard-mini-value">{progress.streak}</div>
+              <div className="dashboard-mini-text">把感觉练成稳定节奏</div>
+            </article>
           </div>
         </div>
-        <div className="dashboard-kpi-grid">
-          <article className="dashboard-kpi-card">
-            <div className="muted-sm">已掌握牌卡</div>
-            <div className="dashboard-kpi-value">{learnedCount} / {totalCards}</div>
-            <div className="muted-sm">收藏 {favouriteCount} 张，连续学习 {progress.streak} 天</div>
-          </article>
-          <article className="dashboard-kpi-card">
-            <div className="muted-sm">本周练习</div>
-            <div className="dashboard-kpi-value">{weeklyPracticeCount} 次</div>
-            <div className="muted-sm">以最近 7 天更新的个人案例为准</div>
-          </article>
-          <article className="dashboard-kpi-card">
-            <div className="muted-sm">个人案例</div>
-            <div className="dashboard-kpi-value">{cases.length} 篇</div>
-            <div className="muted-sm">草稿 {draftCases.length} 篇，可投稿 {submittableCases.length} 篇</div>
-          </article>
-          <article className="dashboard-kpi-card">
-            <div className="muted-sm">共享权限</div>
-            <div className="dashboard-kpi-value">{accessText}</div>
-            <div className="muted-sm">{me.canReadSharedCase ? "当前可进入共享案例库阅读全文" : "未开通时仅建议先完成练习与投稿"}</div>
-          </article>
+
+        <div className="dashboard-oracle-panel">
+          <div className="dashboard-oracle-head">
+            <div>
+              <div className="badge">今夜引导牌</div>
+              <div className="muted-sm" style={{ marginTop: 8 }}>{me.username}，欢迎回到今晚的学习旅程</div>
+            </div>
+            <button className="dashboard-swap-btn" type="button" onClick={() => setOracleIndex((v) => (v + 1) % CARDS.length)}>换一张</button>
+          </div>
+          <div className="dashboard-oracle-card">
+            <div className="dashboard-oracle-icon">{todayCard.icon}</div>
+            <div className="dashboard-oracle-name">{todayCard.name}</div>
+            <div className="dashboard-oracle-tags">{todayCard.tags.slice(0, 3).join(' · ')}</div>
+            <p className="dashboard-oracle-copy">今天适合提高对 {todayCard.core} 的敏感度。先不要急着下判断，先看这张牌在关系、动机与气氛里究竟把什么悄悄推到台前。</p>
+            <div className="dashboard-oracle-note">关键词参考：{todayCard.tags.slice(0, 5).join(' · ')}</div>
+          </div>
+          <div className="dashboard-ritual-list">
+            <div className="dashboard-ritual-card">
+              <div className="dashboard-ritual-index">01</div>
+              <div>
+                <div className="dashboard-feed-title">先翻几张牌义卡</div>
+                <div className="muted-sm">把直觉和记忆先热起来，再开始今天的解读。</div>
+              </div>
+            </div>
+            <div className="dashboard-ritual-card">
+              <div className="dashboard-ritual-index">02</div>
+              <div>
+                <div className="dashboard-feed-title">做一次真实问题练习</div>
+                <div className="muted-sm">把今天的牌面、背景与判断沉淀到个人案例库。</div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

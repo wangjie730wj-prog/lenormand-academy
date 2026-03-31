@@ -64,7 +64,7 @@ export default function LibraryPage() {
             ["mastered", "已掌握"],
             ["unmastered", "未掌握"],
           ].map(([key, label]) => (
-            <button key={key} className={`filter-chip ${filter === key ? "active" : ""}`} onClick={() => setFilter(key as never)}>
+            <button key={key} className={`filter-chip filter-chip-contrast ${filter === key ? "active" : ""}`} onClick={() => setFilter(key as never)}>
               {label}
             </button>
           ))}
